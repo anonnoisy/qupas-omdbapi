@@ -15,10 +15,20 @@ import android.widget.Toast
 import com.pandacode.task.qupas.qupasomdb.R
 import com.pandacode.task.qupas.qupasomdb.adapter.NoteAdapter
 import com.pandacode.task.qupas.qupasomdb.db.entity.Note
+import com.pandacode.task.qupas.qupasomdb.network.ApiEndpoint
 import com.pandacode.task.qupas.qupasomdb.viewmodel.NoteViewModel
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+
+    private val client by lazy {
+        ApiEndpoint.loadData()
+    }
+
+    var disposable: Disposable? = null
 
     private val ADD_NOTE_REQUEST = 1
     private lateinit var noteViewModel: NoteViewModel
@@ -48,6 +58,22 @@ class MainActivity : AppCompatActivity() {
                 Log.d("MainActivity", "List note: $t")
             })
 
+        showMovie("avenger")
+
+    }
+
+    private fun showMovie(title: String) {
+        disposable = client.getMovieData(title)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                {
+                    Log.d("MainActivity", "Movie List: $it")
+                },
+                {
+                    Log.d("MainActivity", "Error get movie: $it")
+                }
+            )
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
